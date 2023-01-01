@@ -67,6 +67,24 @@ public:
         }
         return -1;
     }
+    pair<int, int> popFront(){
+        if(colomns.size() == 0){
+            return {-1, -1};
+        }
+        auto it = std::min_element(colomns.begin(), colomns.end());
+        pair<int, int> p = *it;
+        colomns.erase(it);
+        return p;
+    }
+    pair<int, int> popBack(){
+        if(colomns.size() == 0){
+            return {-1, -1};
+        }
+        auto it = std::max_element(colomns.begin(), colomns.end());
+        pair<int, int> p = *it;
+        colomns.erase(it);
+        return p;
+    }
     int remove(int key){
         map<int, int>::iterator iterator = colomns.find(key);
         if(iterator != colomns.end()){
@@ -75,6 +93,9 @@ public:
             return val;
         }
         return -1;
+    }
+    void removeAll(){
+        colomns.erase(colomns.begin(), colomns.end());
     }
     Node split(){
         Node node1(colomnSize, m, leafStatus);

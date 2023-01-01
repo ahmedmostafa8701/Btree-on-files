@@ -24,14 +24,7 @@ public:
         return n;
     }
     bool isEmpty(string fileName){
-        fstream stream;
-        stream.open(fileName.c_str(), ios::in | ios::binary | ios::out);
-        bool empty = stream.peek() == std::ifstream::traits_type::eof();
-        stream.close();
-        if(stream.peek() == std::ifstream::traits_type::eof()){
-            return true;
-        }
-        return false;
+        return fileSize(fileName) == 0;
     }
     void deleteContent(string fileName){
         fstream stream;

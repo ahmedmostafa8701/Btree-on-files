@@ -18,6 +18,8 @@ private:
     string filePath;
     int rootPos;
     int headerPos;
+    const static int POP_LOW = 0;
+    const static int POP_HIGH = 1;
     const static int EMPTYCOLOMNS = -2;
 public:
     BTree(int m, int n, int colomnSize, int headerPos,int rootPos, const string &filePath = "") : m(m), n(n), colomnSize(colomnSize), filePath(
@@ -211,6 +213,165 @@ public:
             }
         }
         return -1;
+    }
+    void remove(int key){
+        vector<int> parents;
+        int pos = getDeletedPos(key, parents);
+        if(pos == -1 || pos == EMPTYCOLOMNS){
+            return;
+        }
+        remove(key, pos, parents);
+    }
+    int remove(int key, int pos, vector<int> &parents){
+        Node node = readNode(pos);
+        int large = node.maxElement();
+        node.remove(key);
+        if(node.size() == 0){
+            deleteNode(pos);
+            if(parents.size() != 0){
+                int parent = parents.back();
+                parents.pop_back();
+                parent = remove(large, parent, parents);
+                if(parent != -1){
+                    parents.push_back(parent);
+                }
+            }
+            return -1;
+        }
+        writeNode(node, pos);
+        if(parents.size() == 0){
+            return pos;
+        }
+        updateMax(parents, {node.maxElement(), pos}, large);
+        if(node.size() < m / 2){
+            Node parent = readNode(parents.back());
+            auto colomns = parent.getColomns();
+            auto it = colomns.find(node.maxElement());
+            auto prev = it;
+            auto next = it;
+            if(prev != colomns.begin() && redistribution(pos, (--prev)->second, parents, POP_HIGH)){
+                return pos;
+            }
+            else if(++next != colomns.end() && redistribution(pos, next->second, parents, POP_LOW)){
+                return pos;
+            }
+            prev = it;
+            next = it;
+            if(prev != colomns.begin() && merge(pos, (--prev)->second, parents)){
+                if(parents.size() == 1){
+                    Node parentNew = readNode(parents.back());
+                    if(parentNew.size() == 1){
+                        node = readNode(prev->second);
+                        writeNode(node, parents.back());
+                        deleteNode(prev->second);
+                        return -1;
+                    }
+                }
+                return prev->second;
+            }
+            else if(++next != colomns.end() && merge(pos, next->second, parents)){
+                if(parents.size() == 1){
+                    Node parentNew = readNode(parents.back());
+                    if(parentNew.size() == 1){
+                        node = readNode(next->second);
+                        writeNode(node, parents.back());
+                        deleteNode(next->second);
+                        return -1;
+                    }
+                }
+                return next->second;
+            }
+        }
+        return pos;
+    }
+    bool merge(int sourcePos, int destinationPos, vector<int> &parents){
+        Node source = readNode(sourcePos);
+        Node destination = readNode(destinationPos);
+        int largeSource = source.maxElement();
+        int largeDestination = destination.maxElement();
+        int parent = parents.back();
+        if(source.size() == 0){
+            deleteNode(sourcePos);
+            return true;
+        }
+        if(source.size() + destination.size() > m){
+            return false;
+        }
+        for (const auto &item: source.getColomns()){
+            destination.insert(item);
+        }
+        writeNode(destination, destinationPos);
+        deleteNode(sourcePos);
+        parents.pop_back();
+        parent = remove(largeSource, parent, parents);
+        if(parent != -1){
+            parents.push_back(parent);
+            updateMax(parents, {destination.maxElement(), destinationPos}, largeDestination);
+        }
+    }
+    bool redistribution(int sourcePos, int destinationPos, vector<int> parents, int pop){
+        Node source = readNode(sourcePos);
+        Node destination = readNode(destinationPos);
+        if(destination.size() - 1 < m / 2 || destination.size() == 1){
+            return false;
+        }
+        if(pop == POP_LOW){
+            int oldMax = source.maxElement();
+            source.insert(destination.popFront());
+            updateMax(parents, {source.maxElement(), sourcePos}, oldMax);
+        }
+        else if(pop == POP_HIGH){
+            int oldMax = destination.maxElement();
+            source.insert(destination.popBack());
+            updateMax(parents, {destination.maxElement(), destinationPos}, oldMax);
+        }
+        writeNode(source, sourcePos);
+        writeNode(destination, destinationPos);
+    }
+    int getDeletedPos(int key, vector<int> &v){
+        return getDeletedPos(rootPos, key, v);
+    }
+    int getDeletedPos(int pos, int key, vector<int> &v){
+        Node node = readNode(pos);
+        if(node.getLeafStatus() == -1){
+            return EMPTYCOLOMNS;
+        }
+        if(node.getLeafStatus() == 0){
+            if(node.find(key) != -1){
+                return pos;
+            }
+            return -1;
+        }
+        v.push_back(pos);
+        for (auto item: node.getColomns()){
+            if(key <= item.first){
+                return getDeletedPos(item.second, key, v);
+            }
+        }
+        return -1;
+    }
+    void updateMax(vector<int> chain, pair<int, int> updated, int old){
+        if(chain.size() == 0){
+            return;
+        }
+        int pos = chain.back();
+        Node node = readNode(pos);
+        int oldMax = node.maxElement();
+        node.remove(old);
+        node.insert(updated);
+        writeNode(node, pos);
+        chain.pop_back();
+        updateMax(chain, {node.maxElement(), pos}, oldMax);
+    }
+    void deleteNode(int pos){
+        Node node = readNode(pos);
+        Node header = readNode(headerPos);
+        node.removeAll();
+        node.setLeafStatus(-1);
+        node.setNext(header.getNext());
+        header.setNext(pos);
+        writeNode(header, headerPos);
+        writeNode(node, pos);
     }
     vector<Node> getAll(){
         return getAll(rootPos);

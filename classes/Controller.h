@@ -20,6 +20,66 @@
  1
  14
  72
+ 1
+ 19
+ 84
+ 1
+ 30
+ 96
+ 1
+ 15
+ 108
+ 1
+ 1
+ 120
+ 1
+ 5
+ 132
+ 1
+ 2
+ 144
+ 1
+ 8
+ 156
+ 1
+ 9
+ 168
+ 1
+ 6
+ 180
+ 1
+ 11
+ 192
+ 1
+ 12
+ 204
+ 1
+ 17
+ 216
+ 1
+ 18
+ 228
+ 1
+ 32
+ 240
+ 2
+ 10
+ 2
+ 9
+ 2
+ 8
+ 2
+ 6
+ 2
+ 7
+ 2
+ 5
+ 2
+ 15
+ 2
+ 14
+ 2
+ 12
 
  */
 #include<bits/stdc++.h>
@@ -43,7 +103,7 @@ public:
     }
 
     void DeleteRecordFromIndex(int RecordID){
-
+        btree->remove(RecordID);
     }
     void DisplayIndexFileContent(){
         vector<Node> nodes = btree->getAll();
