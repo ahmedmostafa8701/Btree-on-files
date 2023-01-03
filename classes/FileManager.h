@@ -18,7 +18,7 @@ public:
     }
     int fileSize(string fileName){
         fstream stream;
-        stream.open(fileName.c_str(), ios::in | ios::binary| ios::out);
+        stream.open(fileName.c_str(), ios::out);
         stream.seekg(0, ios::end);
         int n = (int) stream.tellg();
         return n;

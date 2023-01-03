@@ -31,7 +31,8 @@ public:
         }
         this->rootPos = rootPos;
         this->headerPos = headerPos;
-        if(manager.fileSize(filePath) == 0 || (manager.fileSize(filePath) != recordLength * n)){
+        int size = manager.fileSize(filePath);
+        if(size == 0 || size != recordLength * n){
             manager.deleteContent(filePath);
             createIndexFileFile();
         }
