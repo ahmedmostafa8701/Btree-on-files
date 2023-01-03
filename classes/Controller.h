@@ -95,7 +95,7 @@ public:
     Controller(const FileManager &file) : manager(file) {}
         BTree *btree;
     void CreateIndexFileFile(char* filename, int numberOfRecords, int m){
-        btree = new BTree(m, numberOfRecords, 5, 0, 1, filename);
+        btree = new BTree(m, numberOfRecords, 10, 0, 1, filename);
     }
     int InsertNewRecordAtIndex(int RecordID, int reference){
         pair<int, int> p{RecordID, reference};

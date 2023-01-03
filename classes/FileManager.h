@@ -2,6 +2,7 @@
 // Created by Dell on 12/8/2022.
 //
 #include<bits/stdc++.h>
+#include "filesystem"
 using namespace std;
 #ifndef FILESASSIGNMENT_FILE_H
 #define FILESASSIGNMENT_FILE_H
@@ -17,8 +18,14 @@ public:
         return fileSize(fileName) / len;
     }
     int fileSize(string fileName){
+        filesystem::path path{fileName};
         fstream stream;
-        stream.open(fileName.c_str(), ios::out);
+        if(!exists(path)){
+            stream.open(fileName.c_str(), ios::out);
+        }
+        else{
+            stream.open(fileName.c_str(), ios::in | ios::binary | ios::out);
+        }
         stream.seekg(0, ios::end);
         int n = (int) stream.tellg();
         return n;
